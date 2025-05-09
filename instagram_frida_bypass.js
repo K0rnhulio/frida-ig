@@ -46,6 +46,20 @@ Java.perform(function() {
         console.log("[-] Error hooking SubscriptionManager/Info: " + e);
     }
 
+    // Hook NetworkInfo.getSubscriberId as an alternative way apps might get IMSI
+    try {
+        var NetworkInfo = Java.use("android.net.NetworkInfo");
+        if (NetworkInfo.getSubscriberId) {
+            NetworkInfo.getSubscriberId.implementation = function() {
+                var originalSubscriberId = this.getSubscriberId.call(this);
+                console.log("[+] Intercepted NetworkInfo.getSubscriberId call. Original: " + originalSubscriberId);
+                return "310260123456789"; // Custom IMSI (same as TelephonyManager)
+            };
+        }
+    } catch(e) {
+        console.log("[-] Error hooking NetworkInfo.getSubscriberId: " + e);
+    }
+
     // 2. Generic String Comparison Bypass - Target any comparison with Frida strings
     var targetStrings = [
         "showreel_bloks_frida_layout_component",
